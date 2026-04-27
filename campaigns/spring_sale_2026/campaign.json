@@ -1,0 +1,25 @@
+{
+  "campaign_name": "spring_sale_2026",
+  "subject": "Spring Sale Gaming PC Deals",
+  "preview_text": "Save up to $200 on selected gaming PCs.",
+  "logo_url": "https://bkimg.cdn.bcebos.com/pic/dc54564e9258d109b3dec9bce617dbbf6c81800ae724?x-bce-process=image/format,f_auto/watermark,image_d2F0ZXIvYmFpa2UyNzI,g_7,xp_5,yp_5,P_20/resize,m_lfit,limit_1,h_1080",
+  "hero_image_url": "https://ueeshop.ly200-cdn.com/u_file/UPBG/UPBG770/2603/02/photo/1.jpg?x-oss-process=image/format,webp/quality,q_100/resize,m_lfit,h_0,w_1920",
+  "subtitle": "Upgrade your setup with limited-time offers.",
+  "sections": [
+    {
+      "heading": "High Performance Gaming PCs",
+      "text": "Enjoy smooth gaming, clean cable management, and fast delivery.",
+      "image_url": "https://ueeshop.ly200-cdn.com/u_file/UPBG/UPBG770/2603/01/products/1-2239108fdf.jpg?x-oss-process=image/format,webp/quality,q_100/resize,m_lfit,h_1000,w_1000",
+      "button_text": "Shop Now",
+      "button_url": "https://example.com/products/gaming-pc"
+    },
+    {
+      "heading": "Limited Time Discount",
+      "text": "Selected models are available with special promotional pricing.",
+      "image_url": "https://ueeshop.ly200-cdn.com/u_file/UPBG/UPBG770/2603/02/photo/7.jpg?x-oss-process=image/format,webp/quality,q_100/resize,m_lfit,h_0,w_800",
+      "button_text": "View Deals",
+      "button_url": "https://example.com/collections/sale"
+    }
+  ],
+  "footer_note": "You are receiving this email because you subscribed to our updates."
+}
