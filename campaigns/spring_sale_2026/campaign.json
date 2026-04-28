@@ -1,8 +1,8 @@
 {
   "campaign_name": "spring_sale_2026",
-  "subject": "Spring Sale Gaming PC Deals",
+  "subject": "Test Subject From Campaign JSON",
   "preview_text": "Save up to $200 on selected gaming PCs.",
-  "logo_url": "https://bkimg.cdn.bcebos.com/pic/dc54564e9258d109b3dec9bce617dbbf6c81800ae724?x-bce-process=image/format,f_auto/watermark,image_d2F0ZXIvYmFpa2UyNzI,g_7,xp_5,yp_5,P_20/resize,m_lfit,limit_1,h_1080",
+  "logo_url": "https://ueeshop.ly200-cdn.com/u_file/UPBG/UPBG770/2603/01/photo/1.png?x-oss-process=image/format,webp/quality,q_100",
   "hero_image_url": "https://ueeshop.ly200-cdn.com/u_file/UPBG/UPBG770/2603/02/photo/1.jpg?x-oss-process=image/format,webp/quality,q_100/resize,m_lfit,h_0,w_1920",
   "subtitle": "Upgrade your setup with limited-time offers.",
   "sections": [

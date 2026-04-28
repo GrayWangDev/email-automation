@@ -1,13 +1,17 @@
 import json
+import os
 import html
 from pathlib import Path
+from dotenv import load_dotenv
+
+load_dotenv()
 
 
-campaign_file = "campaigns/spring_sale_2026/campaign.json"
-template_file = "templates/email_template.html"
-output_file = "output/preview.html"
+campaign_file = os.getenv("CAMPAIGN_FILE", "campaigns/spring_sale_2026/campaign.json")
+template_file = os.getenv("TEMPLATE_FILE", "templates/email_template.html")
+output_file = os.getenv("HTML_FILE", "output/preview.html")
 
-unsubscribe_url = "https://example.com/unsubscribe"
+unsubscribe_url = os.getenv("UNSUBSCRIBE_URL", "https://example.com/unsubscribe")
 
 
 def load_campaign(file_path):
@@ -83,7 +87,7 @@ def render_template(template, campaign):
 
 
 def main():
-    Path("output").mkdir(exist_ok=True)
+    Path(output_file).parent.mkdir(parents=True, exist_ok=True)
 
     campaign = load_campaign(campaign_file)
     template = load_template(template_file)
