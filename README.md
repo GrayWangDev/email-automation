@@ -455,6 +455,7 @@ python3 main.py check
 python3 main.py filter
 python3 main.py preview
 python3 main.py send
+python3 main.py test-send
 python3 main.py all
 ```
 
@@ -463,6 +464,7 @@ Command meanings:
 - `check`: check project configuration, required files, send settings, and SMTP settings
 - `filter`: read the raw customer CSV and generate the filtered subscriber CSV
 - `preview`: generate the HTML email preview
+- `test-send`: send the generated HTML email to TEST_TO_EMAIL only
 - `send`: send emails or run dry run based on `.env`
 - `all`: run `check`, `filter`, `preview`, and `send` in order
 

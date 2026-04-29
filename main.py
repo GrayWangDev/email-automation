@@ -105,6 +105,10 @@ def run_preview():
     print("-" * 50)
     return run_command([sys.executable, "src/generate_email.py"])
 
+def run_test_send():
+    print("Step: Send test email")
+    print("-" * 50)
+    return run_command([sys.executable, "src/send_test_email.py"])
 
 def run_send():
     print("Step: Send bulk email")
@@ -117,6 +121,7 @@ def run_all():
     print("=" * 50)
 
     steps = [
+        ("Check configuration", run_check),
         ("Filter subscribed users", run_filter),
         ("Generate HTML preview", run_preview),
         ("Send email", run_send),
@@ -146,7 +151,7 @@ def main():
 
     parser.add_argument(
         "command",
-        choices=["check", "filter", "preview", "send", "all"],
+        choices=["check", "filter", "preview", "test-send","send", "all"],
         help="Command to run: check, filter, preview, send, or all"
     )
 
@@ -158,6 +163,8 @@ def main():
         exit_code = run_filter()
     elif args.command == "preview":
         exit_code = run_preview()
+    elif args.command == "test-send":
+        exit_code = run_test_send()
     elif args.command == "send":
         exit_code = run_send()
     elif args.command == "all":
