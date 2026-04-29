@@ -1,0 +1,7 @@
+姓名,邮箱,累计金额,购买次数,订阅状态,业务员
+Alice,alice@example.com,100,1,已订阅,Tom
+Bob,bob@example.com,200,2,未订阅,Tom
+Charlie,charlie@example.com,300,3,已订阅,Amy
+Duplicate Alice,alice@example.com,400,4,已订阅,Amy
+Invalid Email,wrong-email,500,5,已订阅,Tom
+Empty Email,,600,6,已订阅,Amy

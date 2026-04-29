@@ -8,6 +8,7 @@ output/
 # Real customer data - do not upload
 data/*.csv
 !data/sample_subscribers.csv
+!data/sample_customers.csv
 
 # Environment variables
 .env
