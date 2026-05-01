@@ -206,6 +206,8 @@ CAMPAIGN_FILE=campaigns/spring_sale_2026/campaign.json
 TEMPLATE_FILE=templates/email_template.html
 HTML_FILE=output/preview.html
 LOG_FILE=output/send_log.csv
+RECIPIENT_HISTORY_FILE=output/recipient_history.csv
+SUPPRESS_PREVIOUS_SENDS=true
 UNSUBSCRIBE_URL=https://example.com/unsubscribe
 ```
 
@@ -371,8 +373,15 @@ Check possible statuses:
 - failed
 - skipped_invalid_email
 - skipped_duplicate
+- skipped_previously_sent
 
 Confirm there are no unexpected failures.
+
+If a real send has already been completed, also check:
+
+`output/recipient_history.csv`
+
+Confirm that successfully sent recipients are recorded under the correct `campaign_name`. If the same campaign is sent again and the CSV contains the same email, that recipient should be skipped and `send_log.csv` should show `skipped_previously_sent`.
 
 ---
 
@@ -385,8 +394,10 @@ Before sending to real subscribers, confirm:
 - Test emails were received successfully.
 - Button URLs are correct.
 - Image URLs are public and stable.
+- `campaign_name` in `campaign.json` is correct and stable.
 - Subscriber CSV contains only intended recipients.
 - Raw customer CSV was filtered correctly.
+- `SUPPRESS_PREVIOUS_SENDS=true`.
 - MAX_SEND_LIMIT is set correctly.
 - DRY_RUN is false only when ready.
 - Manual confirmation SEND is required.
@@ -437,6 +448,14 @@ Monitor terminal output and:
 
 `output/send_log.csv`
 
+If terminal output includes:
+
+```text
+Skipped previously sent recipient
+```
+
+the script found an email that already received the same campaign and skipped the duplicate send.
+
 ---
 
 ## 14. After Sending
@@ -444,6 +463,7 @@ Monitor terminal output and:
 After sending:
 
 - Save or review `output/send_log.csv`.
+- Review `output/recipient_history.csv`.
 - Check failed emails.
 - Check inbox or spam reports.
 - Record campaign name and send time.
@@ -461,6 +481,7 @@ Before pushing to GitHub, make sure these files are not uploaded:
 - data/subscribed_only.csv
 - output/preview.html
 - output/send_log.csv
+- output/recipient_history.csv
 
 Run:
 
@@ -518,7 +539,8 @@ Follow this order for each campaign:
 22. Run python3 main.py send
 23. Type SEND to confirm real sending
 24. Review send_log.csv
-25. Set DRY_RUN=true after sending
+25. Review recipient_history.csv
+26. Set DRY_RUN=true after sending
 ```
 
 ---

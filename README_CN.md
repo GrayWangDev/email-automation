@@ -14,6 +14,7 @@
 - 支持发送数量限制
 - 自动校验邮箱格式
 - 自动去重重复邮箱
+- 支持按活动记录已发送用户，避免同一活动重复发送给同一邮箱
 - 生成发送日志
 - 通过统一命令 `main.py` 运行整个流程
 
@@ -72,7 +73,8 @@ email-automation
 │
 ├── output
 │   ├── preview.html
-│   └── send_log.csv
+│   ├── send_log.csv
+│   └── recipient_history.csv
 │
 ├── src
 │   ├── filter_subscribers.py
@@ -95,7 +97,7 @@ email-automation
 - `.env` 不能上传到 GitHub，因为里面有邮箱账号和密码。
 - `data/customers.csv` 不能上传到 GitHub，因为里面可能有真实客户数据。
 - `data/subscribed_only.csv` 不能上传到 GitHub，因为里面有客户邮箱。
-- `output/` 不能上传到 GitHub，因为里面有预览文件和发送日志。
+- `output/` 不能上传到 GitHub，因为里面有预览文件、发送日志和收件人历史。
 - `sample_customers.csv` 和 `sample_subscribers.csv` 是示例数据，可以上传。
 
 ---
@@ -194,6 +196,8 @@ CAMPAIGN_FILE=campaigns/spring_sale_2026/campaign.json
 TEMPLATE_FILE=templates/email_template.html
 HTML_FILE=output/preview.html
 LOG_FILE=output/send_log.csv
+RECIPIENT_HISTORY_FILE=output/recipient_history.csv
+SUPPRESS_PREVIOUS_SENDS=true
 UNSUBSCRIBE_URL=https://example.com/unsubscribe
 ```
 
@@ -220,6 +224,8 @@ UNSUBSCRIBE_URL=https://example.com/unsubscribe
 | `TEMPLATE_FILE` | HTML 邮件模板路径 |
 | `HTML_FILE` | 生成的 HTML 预览文件路径 |
 | `LOG_FILE` | 发送日志文件路径 |
+| `RECIPIENT_HISTORY_FILE` | 收件人发送历史文件路径，用于避免同一活动重复发送 |
+| `SUPPRESS_PREVIOUS_SENDS` | 是否跳过当前活动已经成功发送过的邮箱 |
 | `UNSUBSCRIBE_URL` | 退订链接 |
 
 ---
@@ -253,6 +259,31 @@ DRY_RUN=false
 ```env
 DRY_RUN=true
 ```
+
+Dry Run 不会把邮箱写入 `recipient_history.csv` 的成功发送记录，因此不会影响后续正式发送去重。
+
+### 防止同一活动重复发送
+
+发送模块会根据 `campaign_name + email` 做跨批次去重。
+
+例如：
+
+```text
+5 月 1 日，spring_sale_2026 成功发送给 alice@example.com
+5 月 2 日，alice@example.com 又因为浏览网页出现在新的 CSV
+系统会跳过 alice@example.com，不再重复发送 spring_sale_2026
+```
+
+如果换成新的活动，例如 `summer_sale_2026`，同一个邮箱仍然可以收到新活动邮件。
+
+这个功能依赖：
+
+```env
+RECIPIENT_HISTORY_FILE=output/recipient_history.csv
+SUPPRESS_PREVIOUS_SENDS=true
+```
+
+只有真实发送成功的记录会写入 `recipient_history.csv` 并参与后续去重。`dry_run` 和 `failed` 不会阻止下次发送。
 
 ---
 
@@ -677,6 +708,7 @@ dry_run
 failed
 skipped_invalid_email
 skipped_duplicate
+skipped_previously_sent
 ```
 
 用途：
@@ -685,6 +717,14 @@ skipped_duplicate
 - 查看哪些邮箱发送失败
 - 查看哪些邮箱被跳过
 - 排查失败原因
+
+另外，正式发送成功的收件人会记录到：
+
+```text
+output/recipient_history.csv
+```
+
+这个文件用于防止同一个 `campaign_name` 重复发送给同一个邮箱。
 
 ---
 
@@ -696,6 +736,7 @@ skipped_duplicate
 - 最大发送数量限制
 - 邮箱格式校验
 - 重复邮箱跳过
+- 同一活动已成功发送过的邮箱自动跳过
 - 每封邮件之间延迟发送
 - 发送日志记录
 - 正式发送前必须输入 `SEND`
@@ -729,6 +770,7 @@ data/customers.csv
 data/subscribed_only.csv
 output/preview.html
 output/send_log.csv
+output/recipient_history.csv
 ```
 
 可以上传：

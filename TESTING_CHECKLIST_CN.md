@@ -219,6 +219,8 @@ CAMPAIGN_FILE=campaigns/spring_sale_2026/campaign.json
 TEMPLATE_FILE=templates/email_template.html
 HTML_FILE=output/preview.html
 LOG_FILE=output/send_log.csv
+RECIPIENT_HISTORY_FILE=output/recipient_history.csv
+SUPPRESS_PREVIOUS_SENDS=true
 UNSUBSCRIBE_URL=https://example.com/unsubscribe
 ```
 
@@ -399,10 +401,17 @@ DRY_RUN=true
 - failed
 - skipped_invalid_email
 - skipped_duplicate
+- skipped_previously_sent
 
 确认没有异常失败。
 
 如果有失败，查看 `error_message` 原因。
+
+如果已经做过正式发送，还要检查：
+
+`output/recipient_history.csv`
+
+确认同一个 `campaign_name` 下已经成功发送过的邮箱有记录。后续同一活动再次发送时，这些邮箱应该被跳过，并在 `send_log.csv` 中显示 `skipped_previously_sent`。
 
 ---
 
@@ -415,8 +424,10 @@ DRY_RUN=true
 - 测试邮件已经收到
 - 按钮 URL 正确
 - 图片 URL 公开且稳定
+- `campaign.json` 中的 `campaign_name` 正确且稳定
 - 原始客户 CSV 已正确筛选
 - `subscribed_only.csv` 只包含目标收件人
+- `SUPPRESS_PREVIOUS_SENDS=true`
 - `MAX_SEND_LIMIT` 设置正确
 - `DRY_RUN=false` 只在准备正式发送时使用
 - 正式发送需要手动输入 `SEND`
@@ -467,6 +478,14 @@ SEND
 
 `output/send_log.csv`
 
+如果终端输出中出现：
+
+```text
+Skipped previously sent recipient
+```
+
+说明系统检测到同一活动已经发送过的邮箱，并跳过了重复发送。
+
 ---
 
 ## 15. 发送后处理
@@ -474,6 +493,7 @@ SEND
 发送后：
 
 - 查看 `output/send_log.csv`
+- 查看 `output/recipient_history.csv`
 - 检查失败邮箱
 - 检查是否有邮件进入垃圾箱
 - 记录 campaign 名称和发送时间
@@ -495,6 +515,7 @@ DRY_RUN=true
 - data/subscribed_only.csv
 - output/preview.html
 - output/send_log.csv
+- output/recipient_history.csv
 
 运行：
 
@@ -554,7 +575,8 @@ data/*.csv
 24. 运行 python3 main.py send
 25. 输入 SEND 确认正式发送
 26. 检查 output/send_log.csv
-27. 发送结束后设置 DRY_RUN=true
+27. 检查 output/recipient_history.csv
+28. 发送结束后设置 DRY_RUN=true
 ```
 
 ---

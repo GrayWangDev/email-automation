@@ -12,6 +12,7 @@ It can:
 - Support dry run mode before real sending
 - Limit the number of emails sent
 - Validate and deduplicate email addresses
+- Track sent recipients by campaign to avoid sending the same campaign to the same email twice
 - Save sending results to a log file
 - Run the full workflow through a unified `main.py` command line entry
 
@@ -38,7 +39,8 @@ email-automation
 │
 ├── output
 │   ├── preview.html
-│   └── send_log.csv
+│   ├── send_log.csv
+│   └── recipient_history.csv
 │
 ├── src
 │   ├── filter_subscribers.py
@@ -59,7 +61,7 @@ Important:
 - `.env` should not be uploaded to GitHub.
 - `data/customers.csv` should not be uploaded to GitHub.
 - `data/subscribed_only.csv` should not be uploaded to GitHub.
-- `output/` should not be uploaded to GitHub.
+- `output/` should not be uploaded to GitHub because it may contain previews, send logs, and recipient history.
 - Sample CSV files are safe to upload.
 
 ---
@@ -154,6 +156,8 @@ CAMPAIGN_FILE=campaigns/spring_sale_2026/campaign.json
 TEMPLATE_FILE=templates/email_template.html
 HTML_FILE=output/preview.html
 LOG_FILE=output/send_log.csv
+RECIPIENT_HISTORY_FILE=output/recipient_history.csv
+SUPPRESS_PREVIOUS_SENDS=true
 UNSUBSCRIBE_URL=https://example.com/unsubscribe
 ```
 
@@ -171,6 +175,26 @@ Important settings:
 - `TEMPLATE_FILE` controls which HTML email template is used.
 - `HTML_FILE` controls where the generated HTML preview is saved.
 - `LOG_FILE` controls where the sending log is saved.
+- `RECIPIENT_HISTORY_FILE` controls where per-recipient campaign send history is saved.
+- `SUPPRESS_PREVIOUS_SENDS=true` skips emails that have already received the same campaign successfully.
+
+Dry runs do not write successful send records to `recipient_history.csv`, so testing will not block later real sends.
+
+### Preventing Duplicate Campaign Sends
+
+The bulk sender checks `campaign_name + email` before sending.
+
+Example:
+
+```text
+On May 1, spring_sale_2026 is successfully sent to alice@example.com.
+On May 2, alice@example.com appears again in a new CSV because she browsed the website again.
+The script skips alice@example.com for spring_sale_2026.
+```
+
+If the campaign changes to something like `summer_sale_2026`, the same email can still receive the new campaign.
+
+Only real successful sends with status `sent` are used for this suppression. `dry_run` and `failed` records do not block future sends.
 
 ---
 
@@ -571,6 +595,7 @@ dry_run
 failed
 skipped_invalid_email
 skipped_duplicate
+skipped_previously_sent
 ```
 
 Use this log to review:
@@ -579,6 +604,14 @@ Use this log to review:
 - Which emails failed
 - Which emails were skipped
 - Why a record failed or was skipped
+
+Successful real sends are also written to:
+
+```text
+output/recipient_history.csv
+```
+
+This file is used to prevent the same `campaign_name` from being sent to the same email again.
 
 ---
 
@@ -590,6 +623,7 @@ Current safety features:
 - Maximum send limit
 - Email validation
 - Duplicate email skipping
+- Previously sent recipient suppression for the same campaign
 - Send delay between emails
 - Sending log
 - Manual confirmation before real sending
@@ -666,6 +700,7 @@ data/customers.csv
 data/subscribed_only.csv
 output/preview.html
 output/send_log.csv
+output/recipient_history.csv
 ```
 
 If sensitive files appear, stop and fix `.gitignore` before pushing.
