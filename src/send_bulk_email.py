@@ -22,6 +22,7 @@ SUBSCRIBERS_FILE = os.getenv("SUBSCRIBERS_FILE", "data/subscribed_only.csv")
 CAMPAIGN_FILE = os.getenv("CAMPAIGN_FILE", "campaigns/spring_sale_2026/campaign.json")
 HTML_FILE = os.getenv("HTML_FILE", "output/preview.html")
 LOG_FILE = os.getenv("LOG_FILE", "output/send_log.csv")
+HISTORY_FILE = os.getenv("HISTORY_FILE", "output/campaign_history.csv")
 
 DRY_RUN = os.getenv("DRY_RUN", "true").strip().lower() == "true"
 MAX_SEND_LIMIT = int(os.getenv("MAX_SEND_LIMIT", "3"))
@@ -105,7 +106,7 @@ def create_message(to_email, subject, html_content):
 
     return message
 
-
+#邮件发送记录
 def write_log(email, status, error_message=""):
     Path("output").mkdir(exist_ok=True)
 
@@ -124,6 +125,50 @@ def write_log(email, status, error_message=""):
             "status": status,
             "error_message": error_message
         })
+#活动记录
+def write_campaign_history(
+    subject,
+    total_subscribers,
+    processed_count,
+    sent_count,
+    failed_count,
+    dry_run_count
+):
+    Path(HISTORY_FILE).parent.mkdir(parents=True, exist_ok=True)
+
+    file_exists = Path(HISTORY_FILE).exists()
+
+    with open(HISTORY_FILE, mode="a", newline="", encoding="utf-8") as file:
+        fieldnames = [
+            "time",
+            "campaign_file",
+            "subject",
+            "dry_run",
+            "total_subscribers",
+            "processed_count",
+            "sent_count",
+            "failed_count",
+            "dry_run_count"
+        ]
+
+        writer = csv.DictWriter(file, fieldnames=fieldnames)
+
+        if not file_exists:
+            writer.writeheader()
+
+        writer.writerow({
+            "time": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+            "campaign_file": CAMPAIGN_FILE,
+            "subject": subject,
+            "dry_run": str(DRY_RUN).lower(),
+            "total_subscribers": total_subscribers,
+            "processed_count": processed_count,
+            "sent_count": sent_count,
+            "failed_count": failed_count,
+            "dry_run_count": dry_run_count
+        })
+
+
 #发送的二次确认，防止误操作
 def confirm_before_sending(send_count, subject):
     if DRY_RUN:
@@ -143,17 +188,29 @@ def confirm_before_sending(send_count, subject):
 
     return True
 
-def send_bulk_emails(subscribers, html_content,subject):
+def send_bulk_emails(subscribers, html_content, subject):
     send_list = subscribers[:MAX_SEND_LIMIT]
 
+    sent_count = 0
+    failed_count = 0
+    dry_run_count = 0
+
     print(f"Total subscribed users found: {len(subscribers)}")
-    print(f"Safety limit enabled. Will send only: {len(send_list)} email(s)")
+    print(f"Safety limit enabled. Will process only: {len(send_list)} email(s)")
     print(f"DRY_RUN mode: {DRY_RUN}")
     print("-" * 50)
 
     confirmed = confirm_before_sending(len(send_list), subject)
 
     if not confirmed:
+        write_campaign_history(
+            subject=subject,
+            total_subscribers=len(subscribers),
+            processed_count=0,
+            sent_count=0,
+            failed_count=0,
+            dry_run_count=0
+        )
         return
 
     with smtplib.SMTP(SMTP_HOST, SMTP_PORT) as server:
@@ -163,13 +220,16 @@ def send_bulk_emails(subscribers, html_content,subject):
         for index, email in enumerate(send_list, start=1):
             try:
                 message = create_message(email, subject, html_content)
+
                 if DRY_RUN:
                     print(f"[{index}/{len(send_list)}] DRY RUN - would send to: {email}")
                     write_log(email, "dry_run")
+                    dry_run_count += 1
                 else:
                     server.send_message(message)
                     print(f"[{index}/{len(send_list)}] Sent to: {email}")
                     write_log(email, "sent")
+                    sent_count += 1
 
                 time.sleep(SEND_DELAY_SECONDS)
 
@@ -177,6 +237,16 @@ def send_bulk_emails(subscribers, html_content,subject):
                 print(f"[{index}/{len(send_list)}] Failed to send to: {email}")
                 print("Error:", error)
                 write_log(email, "failed", str(error))
+                failed_count += 1
+
+    write_campaign_history(
+        subject=subject,
+        total_subscribers=len(subscribers),
+        processed_count=len(send_list),
+        sent_count=sent_count,
+        failed_count=failed_count,
+        dry_run_count=dry_run_count
+    )
 
 
 def main():
